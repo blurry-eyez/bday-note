@@ -11,25 +11,32 @@
     html, body {
       height: 100%;
       margin: 0;
-      background: url('bg.jpeg') center/cover no-repeat fixed;
+      background: url('bbg.jpeg') center/cover no-repeat fixed;
       display: flex;
       justify-content: center;
       align-items: center;
-      flex-direction: column;
       font-family: 'Great Vibes', cursive;
       color: white;
       text-shadow: 0 4px 12px rgba(0,0,0,0.6);
     }
 
+    .card {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      padding: 60px 50px;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    }
+
     .countdown {
       font-size: clamp(48px, 12vw, 120px);
-      margin-bottom: 10px;
-      text-align: center;
+      margin-bottom: 15px;
     }
 
     .message {
-      font-size: 1.2rem;
-      opacity: 0.85;
+      font-size: 1.4rem;
+      opacity: 0.9;
       margin-bottom: 30px;
     }
 
@@ -58,22 +65,29 @@
       max-height: 80vh;
       border-radius: 10px;
       box-shadow: 0 0 30px rgba(0,0,0,0.6);
+      animation: fadeIn 1s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
 
-  <div class="countdown" id="countdown">--:--:--:--</div>
-  <div class="message" id="message">Countdown reveals a message</div>
-  <button class="open-btn" id="openBtn">Open Message</button>
-  <img src="letter.jpeg" alt="Letter" class="letter" id="letter">
+  <div class="card">
+    <div class="countdown" id="countdown">--:--:--</div>
+    <div class="message">Countdown reveals a message</div>
+    <button class="open-btn" id="openBtn">Open Message</button>
+    <img src="letter.jpeg" alt="Letter" class="letter" id="letter">
+  </div>
 
   <script>
     const countdownEl = document.getElementById('countdown');
     const openBtn = document.getElementById('openBtn');
     const letter = document.getElementById('letter');
-
-    const targetDate = new Date(2025, 10, 4, 0, 0, 0); // 4 Nov 2025 (month index 10)
+    const targetDate = new Date(2025, 10, 4, 0, 0, 0); // 4 Nov 2025
 
     function updateCountdown() {
       const now = new Date();
@@ -81,7 +95,7 @@
 
       if (diff <= 0) {
         countdownEl.textContent = "It's time";
-        openBtn.style.display = 'block';
+        openBtn.style.display = 'inline-block';
         clearInterval(timer);
         return;
       }
@@ -92,8 +106,9 @@
       const minutes = Math.floor((sec % 3600) / 60);
       const seconds = sec % 60;
 
+      const dayPart = days > 0 ? `${days}d ` : '';
       countdownEl.textContent = 
-        `${days}d ${hours}h ${String(minutes).padStart(2,'0')}m ${String(seconds).padStart(2,'0')}s`;
+        `${dayPart}${hours}h ${String(minutes).padStart(2,'0')}m ${String(seconds).padStart(2,'0')}s`;
     }
 
     const timer = setInterval(updateCountdown, 1000);
