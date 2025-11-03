@@ -5,21 +5,22 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Countdown — Letter Reveal</title>
 
-  <!-- fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --card-bg: rgba(255,255,255,0.06);
       --card-border: rgba(255,255,255,0.12);
       --muted: rgba(255,255,255,0.82);
     }
 
+    /* ensure html/body cover full viewport */
     html,body{
       height:100%;
       margin:0;
+    }
+
+    body{
       font-family: "Playfair Display", serif;
-      background: url('bg.jpeg') center/cover no-repeat fixed;
       -webkit-font-smoothing:antialiased;
       -moz-osx-font-smoothing:grayscale;
       display:flex;
@@ -27,6 +28,31 @@
       justify-content:center;
       padding:24px;
       color: #fffefc;
+      position:relative;
+      overflow-x:hidden;
+      background-color:#0b0b0b; /* fallback */
+    }
+
+    /* reliable full-screen background layer */
+    body::before{
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: url('bbg.jpeg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      z-index: -2;
+      transform: translateZ(0); /* force composite */
+    }
+
+    /* optional subtle dark overlay to increase contrast */
+    body::after{
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.45));
+      z-index: -1;
     }
 
     /* Frosted glass tile */
@@ -132,27 +158,23 @@
       opacity:0.6;
     }
 
-    /* Message text: paragraphs, nicely indented */
+    /* Message text: single block that wraps naturally */
     .letter .greeting {
       font-family: "Great Vibes", cursive;
       font-size: 2.0rem;
-      margin:8px 0 10px 0;
+      margin:8px 0 14px 0;
       color: #111;
       text-align:center;
     }
 
     .letter .body {
-      padding: 8px 26px;
+      padding: 0 26px;
       font-size:1.06rem;
       color:#111;
-      text-align:left;
-    }
-
-    .letter .body p {
-      margin: 0 0 12px 0;
-      text-indent: 1.2em;        /* first-line indent */
-      margin-left: 6px;         /* subtle left gap */
-      margin-right: 6px;
+      text-align:center;           /* centered; will wrap naturally */
+      white-space: normal;        /* allow normal wrapping */
+      word-wrap: break-word;
+      margin-bottom: 6px;
     }
 
     /* close button */
@@ -193,18 +215,14 @@
       <div class="greeting" id="greeting">A Little Letter</div>
 
       <div class="body" id="messageBody">
-        <p>𝙃𝙖𝙥𝙥𝙮 𝙗𝙞𝙧𝙩𝙝𝙙𝙖𝙮 𝙩𝙤 𝙩𝙝𝙚 𝙜𝙞𝙧𝙡 💌 who shines like the sun🌻,</p>
-
-        <p>looks like the moon🌓, smells like a flower🌹,</p>
-
-        <p>and whose eyes are like diamonds 💎 that brighten my world.✨</p>
+        𝙃𝙖𝙥𝙥𝙮 𝙗𝙞𝙧𝙩𝙝𝙙𝙖𝙮 𝙩𝙤 𝙩𝙝𝙚 𝙜𝙞𝙧𝙡 💌 who shines like the sun🌻, looks like the moon🌓, smells like a flower🌹, and whose eyes are like diamonds 💎 that brighten my world.✨
       </div>
     </div>
   </div>
 
   <script>
     (function(){
-      const target = new Date(2025, 10, 3, 0, 0, 0); // 4 Nov 2025, local
+      const target = new Date(2025, 10, 4, 0, 0, 0); // 4 Nov 2025, local
       const countdownEl = document.getElementById('countLabel');
       const openBtn = document.getElementById('openBtn');
       const overlay = document.getElementById('overlay');
