@@ -3,62 +3,59 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Countdown — Message</title>
+  <title>Countdown — Letter Reveal</title>
 
-  <!-- Script font for countdown + elegant serif for the message -->
+  <!-- fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --card-bg: rgba(255,255,255,0.08);
+      --card-bg: rgba(255,255,255,0.06);
       --card-border: rgba(255,255,255,0.12);
-      --accent: #fff9f2;
-      --muted: rgba(255,255,255,0.78);
-      --glass-blur: 14px;
+      --muted: rgba(255,255,255,0.82);
     }
 
     html,body{
       height:100%;
       margin:0;
       font-family: "Playfair Display", serif;
+      background: url('bg.jpeg') center/cover no-repeat fixed;
       -webkit-font-smoothing:antialiased;
       -moz-osx-font-smoothing:grayscale;
-      color:var(--accent);
-      background: url('bg.jpeg') center/cover no-repeat fixed;
       display:flex;
       align-items:center;
       justify-content:center;
       padding:24px;
+      color: #fffefc;
     }
 
-    /* center frosted tile */
+    /* Frosted glass tile */
     .card{
       width:min(820px, 94vw);
-      padding:48px 40px;
-      border-radius:18px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
-      border: 1px solid var(--card-border);
-      backdrop-filter: blur(var(--glass-blur)) saturate(120%);
-      box-shadow: 0 18px 60px rgba(6,8,15,0.6);
+      padding:44px 36px;
+      border-radius:16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border:1px solid var(--card-border);
+      backdrop-filter: blur(14px) saturate(120%);
+      box-shadow: 0 20px 60px rgba(6,8,15,0.6);
       text-align:center;
     }
 
-    /* countdown (script font) */
     .countdown{
       font-family: "Great Vibes", cursive;
       font-size: clamp(48px, 12vw, 110px);
       line-height:0.95;
       margin:0 0 10px 0;
-      text-shadow: 0 8px 30px rgba(0,0,0,0.55);
+      text-shadow: 0 10px 30px rgba(0,0,0,0.55);
     }
 
     .sub{
+      color: var(--muted);
       font-size:1.05rem;
-      color:var(--muted);
-      margin-bottom:28px;
+      margin-bottom:26px;
     }
 
-    /* open button hidden until unlocked; fade/slide in animation */
+    /* button, hidden until countdown ends */
     .open-btn{
       display:inline-block;
       padding:10px 26px;
@@ -67,7 +64,7 @@
       border-radius:12px;
       border:1px solid rgba(255,255,255,0.9);
       background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-      color:var(--accent);
+      color: #fffefc;
       cursor:pointer;
       transform: translateY(10px);
       opacity:0;
@@ -83,11 +80,11 @@
     .open-btn:active{ transform: translateY(1px); }
     .open-btn:focus{ outline: 3px solid rgba(255,255,255,0.12); outline-offset:4px; }
 
-    /* popup modal */
+    /* modal overlay and letter box */
     .overlay{
       position:fixed;
       inset:0;
-      background: rgba(6,8,12,0.55);
+      background: rgba(6,8,12,0.6);
       display:flex;
       align-items:center;
       justify-content:center;
@@ -101,369 +98,83 @@
       pointer-events:auto;
     }
 
-    .popup{
+    .letter {
       width:min(760px, 92vw);
       max-height:86vh;
       overflow:auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border-radius:16px;
-      padding:34px 34px 26px 34px;
-      border:1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 30px 90px rgba(2,6,20,0.75);
-      transform: translateY(10px) scale(.98);
-      opacity:0;
-      transition: transform 320ms cubic-bezier(.2,.9,.2,1), opacity 320ms ease;
-      color: #fffefc;
-      font-size:1.06rem;
-      line-height:1.6;
-    }
-    .overlay.show .popup{
-      transform: translateY(0) scale(1);
-      opacity:1;
-    }
-
-    /* message styling — keep it poetic & readable */
-    .popup .greeting{
-      font-family: "Great Vibes", cursive;
-      font-size: 2.2rem;
-      margin: 0 0 12px 0;
-      letter-spacing: -0.5px;
-    }
-    .popup .text{
-      font-family: "Playfair Display", serif;
-      font-size: 1.05rem;
-      color: #fffdf9;
-      white-space: pre-wrap;
-      text-align:center;
-      margin-bottom:18px;
-    }
-    .popup .meta{
-      margin-top: 8px;
-      font-size:0.92rem;
-      color: rgba(255,255,255,0.8);
-      text-align:center;
-    }
-
-    /* close button */
-    .close-btn{
-      position: absolute;
-      top:18px;
-      right:18px;
-      background: rgba(0,0,0,0.45);
-      color:white;
-      border: none;
-      padding:8px 10px;
-      border-radius:8px;
-      cursor:pointer;
-      font-weight:600;
-      z-index:90;
-      backdrop-filter: blur(6px);
-    }
-
-    /* subtle decorative underline */
-    .decor {
-      width:72px;
-      height:3px;
-      margin:14px auto 20px;
-      border-radius:2px;
-      background: linear-gradient(90deg, rgba(255,255,255,0.85), rgba(255,255,255,0.25));
-      opacity:0.95;
-    }
-
-    /* small screens tweak */
-    @media (max-width:520px){
-      .card{ padding:30px 22px; border-radius:14px; }
-      .popup{ padding:20px; }
-      .popup .greeting{ font-size:1.8rem; }
-    }
-  </style>
-</head>
-<body>
-  <div class="card" role="main" aria-labelledby="countLabel">
-    <div id="countLabel" class="countdown" aria-live="polite">--:--:--</div>
-    <div class="sub">Countdown reveals a message</div>
-    <button id="openBtn" class="open-btn" aria-hidden="true" aria-disabled="true">Open Message</button>
-  </div>
-
-  <!-- Modal popup (hidden until unlocked & clicked) -->
-  <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="popup" role="document" aria-labelledby="greet">
-      <button class="close-btn" id="closeBtn" aria-label="Close message">✕</button>
-
-      <div id="greet" class="greeting">A Little Letter</div>
-      <div class="decor" aria-hidden="true"></div>
-
-      <div class="text" id="messageText">
-𝙃𝙖𝙥𝙥𝙮 𝙗𝙞𝙧𝙩𝙝𝙙𝙖𝙮 𝙩𝙤 𝙩𝙝𝙚 𝙜𝙞𝙧𝙡 💌𝙬𝙝𝙤 𝙨𝙝𝙞𝙣𝙚𝙨 𝙡𝙞𝙠𝙚 𝙩𝙝𝙚 𝙨𝙪𝙣🌻, 
-𝙡𝙤𝙤𝙠𝙨 𝙡𝙞𝙠𝙚 𝙩𝙝𝙚 𝙢𝙤𝙤𝙣🌓, 
-𝙨𝙢𝙚𝙡𝙡𝙨 𝙡𝙞𝙠𝙚 𝙖 𝙛𝙡𝙤𝙬𝙚𝙧🌹, 
-𝙖𝙣𝙙 𝙬𝙝𝙤𝙨𝙚 𝙚𝙮𝙚𝙨 𝙖𝙧𝙚 𝙡𝙞𝙠𝙚 𝙙𝙞𝙖𝙢𝙤𝙣𝙙𝙨 💎𝙩𝙝𝙖𝙩 𝙗𝙧𝙞𝙜𝙝𝙩𝙚𝙣 𝙢𝙮 𝙬𝙤𝙧𝙡𝙙.✨
-      </div>
-
-      <div class="meta">— With warm wishes</div>
-    </div>
-  </div>
-
-  <script>
-    (function(){
-      // Target date: 4 Nov 2025 at local 00:00
-      const target = new Date(2025, 10, 3, 9, 0, 0);
-
-      const countdownEl = document.getElementById('countLabel');
-      const openBtn = document.getElementById('openBtn');
-      const overlay = document.getElementById('overlay');
-      const closeBtn = document.getElementById('closeBtn');
-
-      // pad helper
-      function pad(n){ return String(n).padStart(2,'0'); }
-
-      function update(){
-        const now = new Date();
-        let diff = target - now;
-
-        if (diff <= 0) {
-          countdownEl.textContent = "It's time";
-          showOpenButton();
-          clearInterval(ticker);
-          return;
-        }
-
-        const sec = Math.floor(diff/1000);
-        const days = Math.floor(sec / (3600*24));
-        const hours = Math.floor((sec % (3600*24)) / 3600);
-        const minutes = Math.floor((sec % 3600) / 60);
-        const seconds = sec % 60;
-
-        const dayPart = days > 0 ? `${days}d ` : ''; // hide 0d
-        countdownEl.textContent = `${dayPart}${hours}h ${pad(minutes)}m ${pad(seconds)}s`;
-      }
-
-      // animate & reveal button
-      function showOpenButton(){
-        openBtn.classList.add('visible');
-        openBtn.removeAttribute('aria-hidden');
-        openBtn.removeAttribute('aria-disabled');
-        openBtn.setAttribute('aria-expanded','false');
-        openBtn.style.pointerEvents = 'auto';
-        // allow keyboard focus
-        openBtn.tabIndex = 0;
-      }
-
-      // event: open popup
-      openBtn.addEventListener('click', function(){
-        overlay.classList.add('show');
-        overlay.setAttribute('aria-hidden','false');
-        // shift focus to close button for accessibility
-        closeBtn.focus();
-      });
-
-      // close popup
-      function closePopup(){
-        overlay.classList.remove('show');
-        overlay.setAttribute('aria-hidden','true');
-        openBtn.focus();
-      }
-
-      closeBtn.addEventListener('click', closePopup);
-
-      // click outside to close
-      overlay.addEventListener('click', function(e){
-        if (e.target === overlay) closePopup();
-      });
-
-      // ESC to close
-      document.addEventListener('keydown', function(e){
-        if (e.key === 'Escape' && overlay.classList.contains('show')) {
-          closePopup();
-        }
-      });
-
-      // initial run
-      update();
-      const ticker = setInterval(update, 1000);
-
-      // If page opened after target, ensure button visible immediately
-      if (new Date() >= target) showOpenButton();
-    })();
-  </script>
-</body>
-</html><!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Countdown — Message</title>
-
-  <!-- Script font for countdown + elegant serif for the message -->
-  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
-
-  <style>
-    :root{
-      --card-bg: rgba(255,255,255,0.08);
-      --card-border: rgba(255,255,255,0.12);
-      --accent: #fff9f2;
-      --muted: rgba(255,255,255,0.78);
-      --glass-blur: 14px;
-    }
-
-    html,body{
-      height:100%;
-      margin:0;
-      font-family: "Playfair Display", serif;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      color:var(--accent);
-      background: url('bg.jpeg') center/cover no-repeat fixed;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:24px;
-    }
-
-    /* center frosted tile */
-    .card{
-      width:min(820px, 94vw);
-      padding:48px 40px;
-      border-radius:18px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
-      border: 1px solid var(--card-border);
-      backdrop-filter: blur(var(--glass-blur)) saturate(120%);
-      box-shadow: 0 18px 60px rgba(6,8,15,0.6);
-      text-align:center;
-    }
-
-    /* countdown (script font) */
-    .countdown{
-      font-family: "Great Vibes", cursive;
-      font-size: clamp(48px, 12vw, 110px);
-      line-height:0.95;
-      margin:0 0 10px 0;
-      text-shadow: 0 8px 30px rgba(0,0,0,0.55);
-    }
-
-    .sub{
-      font-size:1.05rem;
-      color:var(--muted);
-      margin-bottom:28px;
-    }
-
-    /* open button hidden until unlocked; fade/slide in animation */
-    .open-btn{
-      display:inline-block;
-      padding:10px 26px;
-      font-family: "Great Vibes", cursive;
-      font-size:1.6rem;
       border-radius:12px;
-      border:1px solid rgba(255,255,255,0.9);
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-      color:var(--accent);
-      cursor:pointer;
-      transform: translateY(10px);
-      opacity:0;
-      pointer-events:none;
-      transition: transform 420ms cubic-bezier(.2,.9,.2,1), opacity 420ms ease;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
-    }
-    .open-btn.visible{
-      opacity:1;
-      transform: translateY(0);
-      pointer-events:auto;
-    }
-    .open-btn:active{ transform: translateY(1px); }
-    .open-btn:focus{ outline: 3px solid rgba(255,255,255,0.12); outline-offset:4px; }
-
-    /* popup modal */
-    .overlay{
-      position:fixed;
-      inset:0;
-      background: rgba(6,8,12,0.55);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      opacity:0;
-      pointer-events:none;
-      transition: opacity 240ms ease;
-      z-index:60;
-    }
-    .overlay.show{
-      opacity:1;
-      pointer-events:auto;
-    }
-
-    .popup{
-      width:min(760px, 92vw);
-      max-height:86vh;
-      overflow:auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border-radius:16px;
-      padding:34px 34px 26px 34px;
-      border:1px solid rgba(255,255,255,0.08);
+      padding:34px 36px;
+      background: linear-gradient(180deg, #fffefc 0%, #fffaf6 100%);
+      color:#0b0b0b;
       box-shadow: 0 30px 90px rgba(2,6,20,0.75);
-      transform: translateY(10px) scale(.98);
+      transform: translateY(8px) scale(.98);
       opacity:0;
       transition: transform 320ms cubic-bezier(.2,.9,.2,1), opacity 320ms ease;
-      color: #fffefc;
-      font-size:1.06rem;
-      line-height:1.6;
+      position:relative;
+      border: 1px solid rgba(0,0,0,0.06);
+      font-family: "Playfair Display", serif;
+      line-height:1.7;
     }
-    .overlay.show .popup{
+    .overlay.show .letter{
       transform: translateY(0) scale(1);
       opacity:1;
     }
 
-    /* message styling — keep it poetic & readable */
-    .popup .greeting{
+    /* letter header look */
+    .letter::before{
+      content: "";
+      position:absolute;
+      left:20px;
+      right:20px;
+      height:1px;
+      top:16px;
+      background: linear-gradient(90deg, rgba(0,0,0,0.08), rgba(0,0,0,0.02));
+      opacity:0.6;
+    }
+
+    /* Message text: paragraphs, nicely indented */
+    .letter .greeting {
       font-family: "Great Vibes", cursive;
-      font-size: 2.2rem;
+      font-size: 2.0rem;
+      margin:8px 0 10px 0;
+      color: #111;
+      text-align:center;
+    }
+
+    .letter .body {
+      padding: 8px 26px;
+      font-size:1.06rem;
+      color:#111;
+      text-align:left;
+    }
+
+    .letter .body p {
       margin: 0 0 12px 0;
-      letter-spacing: -0.5px;
-    }
-    .popup .text{
-      font-family: "Playfair Display", serif;
-      font-size: 1.05rem;
-      color: #fffdf9;
-      white-space: pre-wrap;
-      text-align:center;
-      margin-bottom:18px;
-    }
-    .popup .meta{
-      margin-top: 8px;
-      font-size:0.92rem;
-      color: rgba(255,255,255,0.8);
-      text-align:center;
+      text-indent: 1.2em;        /* first-line indent */
+      margin-left: 6px;         /* subtle left gap */
+      margin-right: 6px;
     }
 
     /* close button */
     .close-btn{
-      position: absolute;
-      top:18px;
-      right:18px;
-      background: rgba(0,0,0,0.45);
+      position:absolute;
+      top:12px;
+      right:12px;
+      background: rgba(0,0,0,0.46);
       color:white;
-      border: none;
-      padding:8px 10px;
+      border:none;
+      padding:6px 10px;
       border-radius:8px;
       cursor:pointer;
-      font-weight:600;
       z-index:90;
       backdrop-filter: blur(6px);
     }
 
-    /* subtle decorative underline */
-    .decor {
-      width:72px;
-      height:3px;
-      margin:14px auto 20px;
-      border-radius:2px;
-      background: linear-gradient(90deg, rgba(255,255,255,0.85), rgba(255,255,255,0.25));
-      opacity:0.95;
-    }
-
-    /* small screens tweak */
     @media (max-width:520px){
-      .card{ padding:30px 22px; border-radius:14px; }
-      .popup{ padding:20px; }
-      .popup .greeting{ font-size:1.8rem; }
+      .card{ padding:28px 18px; border-radius:12px; }
+      .countdown{ font-size: clamp(40px, 18vw, 72px); }
+      .letter{ padding:20px; }
+      .letter .greeting { font-size:1.6rem; }
     }
   </style>
 </head>
@@ -474,36 +185,31 @@
     <button id="openBtn" class="open-btn" aria-hidden="true" aria-disabled="true">Open Message</button>
   </div>
 
-  <!-- Modal popup (hidden until unlocked & clicked) -->
+  <!-- popup letter -->
   <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="popup" role="document" aria-labelledby="greet">
+    <div class="letter" role="document" aria-labelledby="greeting">
       <button class="close-btn" id="closeBtn" aria-label="Close message">✕</button>
 
-      <div id="greet" class="greeting">A Little Letter</div>
-      <div class="decor" aria-hidden="true"></div>
+      <div class="greeting" id="greeting">A Little Letter</div>
 
-      <div class="text" id="messageText">
-𝙃𝙖𝙥𝙥𝙮 𝙗𝙞𝙧𝙩𝙝𝙙𝙖𝙮 𝙩𝙤 𝙩𝙝𝙚 𝙜𝙞𝙧𝙡 💌𝙬𝙝𝙤 𝙨𝙝𝙞𝙣𝙚𝙨 𝙡𝙞𝙠𝙚 𝙩𝙝𝙚 𝙨𝙪𝙣🌻, 
-𝙡𝙤𝙤𝙠𝙨 𝙡𝙞𝙠𝙚 𝙩𝙝𝙚 𝙢𝙤𝙤𝙣🌓, 
-𝙨𝙢𝙚𝙡𝙡𝙨 𝙡𝙞𝙠𝙚 𝙖 𝙛𝙡𝙤𝙬𝙚𝙧🌹, 
-𝙖𝙣𝙙 𝙬𝙝𝙤𝙨𝙚 𝙚𝙮𝙚𝙨 𝙖𝙧𝙚 𝙡𝙞𝙠𝙚 𝙙𝙞𝙖𝙢𝙤𝙣𝙙𝙨 💎𝙩𝙝𝙖𝙩 𝙗𝙧𝙞𝙜𝙝𝙩𝙚𝙣 𝙢𝙮 𝙬𝙤𝙧𝙡𝙙.✨
+      <div class="body" id="messageBody">
+        <p>𝙃𝙖𝙥𝙥𝙮 𝙗𝙞𝙧𝙩𝙝𝙙𝙖𝙮 𝙩𝙤 𝙩𝙝𝙚 𝙜𝙞𝙧𝙡 💌 who shines like the sun🌻,</p>
+
+        <p>looks like the moon🌓, smells like a flower🌹,</p>
+
+        <p>and whose eyes are like diamonds 💎 that brighten my world.✨</p>
       </div>
-
-      <div class="meta">— With warm wishes</div>
     </div>
   </div>
 
   <script>
     (function(){
-      // Target date: 4 Nov 2025 at local 00:00
-      const target = new Date(2025, 10, 4, 0, 0, 0);
-
+      const target = new Date(2025, 10, 3, 0, 0, 0); // 4 Nov 2025, local
       const countdownEl = document.getElementById('countLabel');
       const openBtn = document.getElementById('openBtn');
       const overlay = document.getElementById('overlay');
       const closeBtn = document.getElementById('closeBtn');
 
-      // pad helper
       function pad(n){ return String(n).padStart(2,'0'); }
 
       function update(){
@@ -512,8 +218,8 @@
 
         if (diff <= 0) {
           countdownEl.textContent = "It's time";
-          showOpenButton();
-          clearInterval(ticker);
+          revealButton();
+          clearInterval(tick);
           return;
         }
 
@@ -523,30 +229,23 @@
         const minutes = Math.floor((sec % 3600) / 60);
         const seconds = sec % 60;
 
-        const dayPart = days > 0 ? `${days}d ` : ''; // hide 0d
+        const dayPart = days > 0 ? `${days}d ` : '';
         countdownEl.textContent = `${dayPart}${hours}h ${pad(minutes)}m ${pad(seconds)}s`;
       }
 
-      // animate & reveal button
-      function showOpenButton(){
+      function revealButton(){
         openBtn.classList.add('visible');
         openBtn.removeAttribute('aria-hidden');
         openBtn.removeAttribute('aria-disabled');
-        openBtn.setAttribute('aria-expanded','false');
-        openBtn.style.pointerEvents = 'auto';
-        // allow keyboard focus
         openBtn.tabIndex = 0;
       }
 
-      // event: open popup
       openBtn.addEventListener('click', function(){
         overlay.classList.add('show');
         overlay.setAttribute('aria-hidden','false');
-        // shift focus to close button for accessibility
         closeBtn.focus();
       });
 
-      // close popup
       function closePopup(){
         overlay.classList.remove('show');
         overlay.setAttribute('aria-hidden','true');
@@ -555,24 +254,20 @@
 
       closeBtn.addEventListener('click', closePopup);
 
-      // click outside to close
       overlay.addEventListener('click', function(e){
         if (e.target === overlay) closePopup();
       });
 
-      // ESC to close
       document.addEventListener('keydown', function(e){
         if (e.key === 'Escape' && overlay.classList.contains('show')) {
           closePopup();
         }
       });
 
-      // initial run
+      // initial
       update();
-      const ticker = setInterval(update, 1000);
-
-      // If page opened after target, ensure button visible immediately
-      if (new Date() >= target) showOpenButton();
+      const tick = setInterval(update, 1000);
+      if (new Date() >= target) revealButton();
     })();
   </script>
 </body>
