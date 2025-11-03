@@ -3,121 +3,577 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Countdown</title>
+  <title>Countdown — Message</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+  <!-- Script font for countdown + elegant serif for the message -->
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
 
   <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      background: url('bbg.jpeg') center/cover no-repeat fixed;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: 'Great Vibes', cursive;
-      color: white;
-      text-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    :root{
+      --card-bg: rgba(255,255,255,0.08);
+      --card-border: rgba(255,255,255,0.12);
+      --accent: #fff9f2;
+      --muted: rgba(255,255,255,0.78);
+      --glass-blur: 14px;
     }
 
-    .card {
-      background: rgba(255,255,255,0.1);
-      backdrop-filter: blur(15px);
-      border-radius: 20px;
-      padding: 60px 50px;
-      text-align: center;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: "Playfair Display", serif;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      color:var(--accent);
+      background: url('bg.jpeg') center/cover no-repeat fixed;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
     }
 
-    .countdown {
-      font-size: clamp(48px, 12vw, 120px);
-      margin-bottom: 15px;
+    /* center frosted tile */
+    .card{
+      width:min(820px, 94vw);
+      padding:48px 40px;
+      border-radius:18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+      box-shadow: 0 18px 60px rgba(6,8,15,0.6);
+      text-align:center;
     }
 
-    .message {
-      font-size: 1.4rem;
-      opacity: 0.9;
-      margin-bottom: 30px;
+    /* countdown (script font) */
+    .countdown{
+      font-family: "Great Vibes", cursive;
+      font-size: clamp(48px, 12vw, 110px);
+      line-height:0.95;
+      margin:0 0 10px 0;
+      text-shadow: 0 8px 30px rgba(0,0,0,0.55);
     }
 
-    .open-btn {
-      font-family: 'Great Vibes', cursive;
-      font-size: 1.8rem;
-      padding: 10px 25px;
-      border: 2px solid rgba(255,255,255,0.8);
-      border-radius: 10px;
-      background: rgba(255,255,255,0.15);
-      color: white;
-      cursor: pointer;
-      transition: 0.3s ease;
-      display: none;
+    .sub{
+      font-size:1.05rem;
+      color:var(--muted);
+      margin-bottom:28px;
     }
 
-    .open-btn:hover {
-      background: rgba(255,255,255,0.25);
-      transform: scale(1.05);
+    /* open button hidden until unlocked; fade/slide in animation */
+    .open-btn{
+      display:inline-block;
+      padding:10px 26px;
+      font-family: "Great Vibes", cursive;
+      font-size:1.6rem;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.9);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      color:var(--accent);
+      cursor:pointer;
+      transform: translateY(10px);
+      opacity:0;
+      pointer-events:none;
+      transition: transform 420ms cubic-bezier(.2,.9,.2,1), opacity 420ms ease;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    }
+    .open-btn.visible{
+      opacity:1;
+      transform: translateY(0);
+      pointer-events:auto;
+    }
+    .open-btn:active{ transform: translateY(1px); }
+    .open-btn:focus{ outline: 3px solid rgba(255,255,255,0.12); outline-offset:4px; }
+
+    /* popup modal */
+    .overlay{
+      position:fixed;
+      inset:0;
+      background: rgba(6,8,12,0.55);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      opacity:0;
+      pointer-events:none;
+      transition: opacity 240ms ease;
+      z-index:60;
+    }
+    .overlay.show{
+      opacity:1;
+      pointer-events:auto;
     }
 
-    .letter {
-      display: none;
-      margin-top: 30px;
-      max-width: 90vw;
-      max-height: 80vh;
-      border-radius: 10px;
-      box-shadow: 0 0 30px rgba(0,0,0,0.6);
-      animation: fadeIn 1s ease;
+    .popup{
+      width:min(760px, 92vw);
+      max-height:86vh;
+      overflow:auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:16px;
+      padding:34px 34px 26px 34px;
+      border:1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 30px 90px rgba(2,6,20,0.75);
+      transform: translateY(10px) scale(.98);
+      opacity:0;
+      transition: transform 320ms cubic-bezier(.2,.9,.2,1), opacity 320ms ease;
+      color: #fffefc;
+      font-size:1.06rem;
+      line-height:1.6;
+    }
+    .overlay.show .popup{
+      transform: translateY(0) scale(1);
+      opacity:1;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    /* message styling — keep it poetic & readable */
+    .popup .greeting{
+      font-family: "Great Vibes", cursive;
+      font-size: 2.2rem;
+      margin: 0 0 12px 0;
+      letter-spacing: -0.5px;
+    }
+    .popup .text{
+      font-family: "Playfair Display", serif;
+      font-size: 1.05rem;
+      color: #fffdf9;
+      white-space: pre-wrap;
+      text-align:center;
+      margin-bottom:18px;
+    }
+    .popup .meta{
+      margin-top: 8px;
+      font-size:0.92rem;
+      color: rgba(255,255,255,0.8);
+      text-align:center;
+    }
+
+    /* close button */
+    .close-btn{
+      position: absolute;
+      top:18px;
+      right:18px;
+      background: rgba(0,0,0,0.45);
+      color:white;
+      border: none;
+      padding:8px 10px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:600;
+      z-index:90;
+      backdrop-filter: blur(6px);
+    }
+
+    /* subtle decorative underline */
+    .decor {
+      width:72px;
+      height:3px;
+      margin:14px auto 20px;
+      border-radius:2px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.85), rgba(255,255,255,0.25));
+      opacity:0.95;
+    }
+
+    /* small screens tweak */
+    @media (max-width:520px){
+      .card{ padding:30px 22px; border-radius:14px; }
+      .popup{ padding:20px; }
+      .popup .greeting{ font-size:1.8rem; }
     }
   </style>
 </head>
 <body>
+  <div class="card" role="main" aria-labelledby="countLabel">
+    <div id="countLabel" class="countdown" aria-live="polite">--:--:--</div>
+    <div class="sub">Countdown reveals a message</div>
+    <button id="openBtn" class="open-btn" aria-hidden="true" aria-disabled="true">Open Message</button>
+  </div>
 
-  <div class="card">
-    <div class="countdown" id="countdown">--:--:--</div>
-    <div class="message">Countdown reveals a message</div>
-    <button class="open-btn" id="openBtn">Open Message</button>
-    <img src="letter.jpeg" alt="Letter" class="letter" id="letter">
+  <!-- Modal popup (hidden until unlocked & clicked) -->
+  <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="popup" role="document" aria-labelledby="greet">
+      <button class="close-btn" id="closeBtn" aria-label="Close message">✕</button>
+
+      <div id="greet" class="greeting">A Little Letter</div>
+      <div class="decor" aria-hidden="true"></div>
+
+      <div class="text" id="messageText">
+𝙃𝙖𝙥𝙥𝙮 𝙗𝙞𝙧𝙩𝙝𝙙𝙖𝙮 𝙩𝙤 𝙩𝙝𝙚 𝙜𝙞𝙧𝙡 💌𝙬𝙝𝙤 𝙨𝙝𝙞𝙣𝙚𝙨 𝙡𝙞𝙠𝙚 𝙩𝙝𝙚 𝙨𝙪𝙣🌻, 
+𝙡𝙤𝙤𝙠𝙨 𝙡𝙞𝙠𝙚 𝙩𝙝𝙚 𝙢𝙤𝙤𝙣🌓, 
+𝙨𝙢𝙚𝙡𝙡𝙨 𝙡𝙞𝙠𝙚 𝙖 𝙛𝙡𝙤𝙬𝙚𝙧🌹, 
+𝙖𝙣𝙙 𝙬𝙝𝙤𝙨𝙚 𝙚𝙮𝙚𝙨 𝙖𝙧𝙚 𝙡𝙞𝙠𝙚 𝙙𝙞𝙖𝙢𝙤𝙣𝙙𝙨 💎𝙩𝙝𝙖𝙩 𝙗𝙧𝙞𝙜𝙝𝙩𝙚𝙣 𝙢𝙮 𝙬𝙤𝙧𝙡𝙙.✨
+      </div>
+
+      <div class="meta">— With warm wishes</div>
+    </div>
   </div>
 
   <script>
-    const countdownEl = document.getElementById('countdown');
-    const openBtn = document.getElementById('openBtn');
-    const letter = document.getElementById('letter');
-    const targetDate = new Date(2025, 10, 4, 0, 0, 0); // 4 Nov 2025
+    (function(){
+      // Target date: 4 Nov 2025 at local 00:00
+      const target = new Date(2025, 10, 4, 0, 0, 0);
 
-    function updateCountdown() {
-      const now = new Date();
-      const diff = targetDate - now;
+      const countdownEl = document.getElementById('countLabel');
+      const openBtn = document.getElementById('openBtn');
+      const overlay = document.getElementById('overlay');
+      const closeBtn = document.getElementById('closeBtn');
 
-      if (diff <= 0) {
-        countdownEl.textContent = "It's time";
-        openBtn.style.display = 'inline-block';
-        clearInterval(timer);
-        return;
+      // pad helper
+      function pad(n){ return String(n).padStart(2,'0'); }
+
+      function update(){
+        const now = new Date();
+        let diff = target - now;
+
+        if (diff <= 0) {
+          countdownEl.textContent = "It's time";
+          showOpenButton();
+          clearInterval(ticker);
+          return;
+        }
+
+        const sec = Math.floor(diff/1000);
+        const days = Math.floor(sec / (3600*24));
+        const hours = Math.floor((sec % (3600*24)) / 3600);
+        const minutes = Math.floor((sec % 3600) / 60);
+        const seconds = sec % 60;
+
+        const dayPart = days > 0 ? `${days}d ` : ''; // hide 0d
+        countdownEl.textContent = `${dayPart}${hours}h ${pad(minutes)}m ${pad(seconds)}s`;
       }
 
-      const sec = Math.floor(diff / 1000);
-      const days = Math.floor(sec / (3600*24));
-      const hours = Math.floor((sec % (3600*24)) / 3600);
-      const minutes = Math.floor((sec % 3600) / 60);
-      const seconds = sec % 60;
+      // animate & reveal button
+      function showOpenButton(){
+        openBtn.classList.add('visible');
+        openBtn.removeAttribute('aria-hidden');
+        openBtn.removeAttribute('aria-disabled');
+        openBtn.setAttribute('aria-expanded','false');
+        openBtn.style.pointerEvents = 'auto';
+        // allow keyboard focus
+        openBtn.tabIndex = 0;
+      }
 
-      const dayPart = days > 0 ? `${days}d ` : '';
-      countdownEl.textContent = 
-        `${dayPart}${hours}h ${String(minutes).padStart(2,'0')}m ${String(seconds).padStart(2,'0')}s`;
+      // event: open popup
+      openBtn.addEventListener('click', function(){
+        overlay.classList.add('show');
+        overlay.setAttribute('aria-hidden','false');
+        // shift focus to close button for accessibility
+        closeBtn.focus();
+      });
+
+      // close popup
+      function closePopup(){
+        overlay.classList.remove('show');
+        overlay.setAttribute('aria-hidden','true');
+        openBtn.focus();
+      }
+
+      closeBtn.addEventListener('click', closePopup);
+
+      // click outside to close
+      overlay.addEventListener('click', function(e){
+        if (e.target === overlay) closePopup();
+      });
+
+      // ESC to close
+      document.addEventListener('keydown', function(e){
+        if (e.key === 'Escape' && overlay.classList.contains('show')) {
+          closePopup();
+        }
+      });
+
+      // initial run
+      update();
+      const ticker = setInterval(update, 1000);
+
+      // If page opened after target, ensure button visible immediately
+      if (new Date() >= target) showOpenButton();
+    })();
+  </script>
+</body>
+</html><!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Countdown — Message</title>
+
+  <!-- Script font for countdown + elegant serif for the message -->
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --card-bg: rgba(255,255,255,0.08);
+      --card-border: rgba(255,255,255,0.12);
+      --accent: #fff9f2;
+      --muted: rgba(255,255,255,0.78);
+      --glass-blur: 14px;
     }
 
-    const timer = setInterval(updateCountdown, 1000);
-    updateCountdown();
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: "Playfair Display", serif;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      color:var(--accent);
+      background: url('bg.jpeg') center/cover no-repeat fixed;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
 
-    openBtn.addEventListener('click', () => {
-      letter.style.display = 'block';
-      openBtn.style.display = 'none';
-    });
+    /* center frosted tile */
+    .card{
+      width:min(820px, 94vw);
+      padding:48px 40px;
+      border-radius:18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+      box-shadow: 0 18px 60px rgba(6,8,15,0.6);
+      text-align:center;
+    }
+
+    /* countdown (script font) */
+    .countdown{
+      font-family: "Great Vibes", cursive;
+      font-size: clamp(48px, 12vw, 110px);
+      line-height:0.95;
+      margin:0 0 10px 0;
+      text-shadow: 0 8px 30px rgba(0,0,0,0.55);
+    }
+
+    .sub{
+      font-size:1.05rem;
+      color:var(--muted);
+      margin-bottom:28px;
+    }
+
+    /* open button hidden until unlocked; fade/slide in animation */
+    .open-btn{
+      display:inline-block;
+      padding:10px 26px;
+      font-family: "Great Vibes", cursive;
+      font-size:1.6rem;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.9);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      color:var(--accent);
+      cursor:pointer;
+      transform: translateY(10px);
+      opacity:0;
+      pointer-events:none;
+      transition: transform 420ms cubic-bezier(.2,.9,.2,1), opacity 420ms ease;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    }
+    .open-btn.visible{
+      opacity:1;
+      transform: translateY(0);
+      pointer-events:auto;
+    }
+    .open-btn:active{ transform: translateY(1px); }
+    .open-btn:focus{ outline: 3px solid rgba(255,255,255,0.12); outline-offset:4px; }
+
+    /* popup modal */
+    .overlay{
+      position:fixed;
+      inset:0;
+      background: rgba(6,8,12,0.55);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      opacity:0;
+      pointer-events:none;
+      transition: opacity 240ms ease;
+      z-index:60;
+    }
+    .overlay.show{
+      opacity:1;
+      pointer-events:auto;
+    }
+
+    .popup{
+      width:min(760px, 92vw);
+      max-height:86vh;
+      overflow:auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:16px;
+      padding:34px 34px 26px 34px;
+      border:1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 30px 90px rgba(2,6,20,0.75);
+      transform: translateY(10px) scale(.98);
+      opacity:0;
+      transition: transform 320ms cubic-bezier(.2,.9,.2,1), opacity 320ms ease;
+      color: #fffefc;
+      font-size:1.06rem;
+      line-height:1.6;
+    }
+    .overlay.show .popup{
+      transform: translateY(0) scale(1);
+      opacity:1;
+    }
+
+    /* message styling — keep it poetic & readable */
+    .popup .greeting{
+      font-family: "Great Vibes", cursive;
+      font-size: 2.2rem;
+      margin: 0 0 12px 0;
+      letter-spacing: -0.5px;
+    }
+    .popup .text{
+      font-family: "Playfair Display", serif;
+      font-size: 1.05rem;
+      color: #fffdf9;
+      white-space: pre-wrap;
+      text-align:center;
+      margin-bottom:18px;
+    }
+    .popup .meta{
+      margin-top: 8px;
+      font-size:0.92rem;
+      color: rgba(255,255,255,0.8);
+      text-align:center;
+    }
+
+    /* close button */
+    .close-btn{
+      position: absolute;
+      top:18px;
+      right:18px;
+      background: rgba(0,0,0,0.45);
+      color:white;
+      border: none;
+      padding:8px 10px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:600;
+      z-index:90;
+      backdrop-filter: blur(6px);
+    }
+
+    /* subtle decorative underline */
+    .decor {
+      width:72px;
+      height:3px;
+      margin:14px auto 20px;
+      border-radius:2px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.85), rgba(255,255,255,0.25));
+      opacity:0.95;
+    }
+
+    /* small screens tweak */
+    @media (max-width:520px){
+      .card{ padding:30px 22px; border-radius:14px; }
+      .popup{ padding:20px; }
+      .popup .greeting{ font-size:1.8rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card" role="main" aria-labelledby="countLabel">
+    <div id="countLabel" class="countdown" aria-live="polite">--:--:--</div>
+    <div class="sub">Countdown reveals a message</div>
+    <button id="openBtn" class="open-btn" aria-hidden="true" aria-disabled="true">Open Message</button>
+  </div>
+
+  <!-- Modal popup (hidden until unlocked & clicked) -->
+  <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="popup" role="document" aria-labelledby="greet">
+      <button class="close-btn" id="closeBtn" aria-label="Close message">✕</button>
+
+      <div id="greet" class="greeting">A Little Letter</div>
+      <div class="decor" aria-hidden="true"></div>
+
+      <div class="text" id="messageText">
+𝙃𝙖𝙥𝙥𝙮 𝙗𝙞𝙧𝙩𝙝𝙙𝙖𝙮 𝙩𝙤 𝙩𝙝𝙚 𝙜𝙞𝙧𝙡 💌𝙬𝙝𝙤 𝙨𝙝𝙞𝙣𝙚𝙨 𝙡𝙞𝙠𝙚 𝙩𝙝𝙚 𝙨𝙪𝙣🌻, 
+𝙡𝙤𝙤𝙠𝙨 𝙡𝙞𝙠𝙚 𝙩𝙝𝙚 𝙢𝙤𝙤𝙣🌓, 
+𝙨𝙢𝙚𝙡𝙡𝙨 𝙡𝙞𝙠𝙚 𝙖 𝙛𝙡𝙤𝙬𝙚𝙧🌹, 
+𝙖𝙣𝙙 𝙬𝙝𝙤𝙨𝙚 𝙚𝙮𝙚𝙨 𝙖𝙧𝙚 𝙡𝙞𝙠𝙚 𝙙𝙞𝙖𝙢𝙤𝙣𝙙𝙨 💎𝙩𝙝𝙖𝙩 𝙗𝙧𝙞𝙜𝙝𝙩𝙚𝙣 𝙢𝙮 𝙬𝙤𝙧𝙡𝙙.✨
+      </div>
+
+      <div class="meta">— With warm wishes</div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      // Target date: 4 Nov 2025 at local 00:00
+      const target = new Date(2025, 10, 4, 0, 0, 0);
+
+      const countdownEl = document.getElementById('countLabel');
+      const openBtn = document.getElementById('openBtn');
+      const overlay = document.getElementById('overlay');
+      const closeBtn = document.getElementById('closeBtn');
+
+      // pad helper
+      function pad(n){ return String(n).padStart(2,'0'); }
+
+      function update(){
+        const now = new Date();
+        let diff = target - now;
+
+        if (diff <= 0) {
+          countdownEl.textContent = "It's time";
+          showOpenButton();
+          clearInterval(ticker);
+          return;
+        }
+
+        const sec = Math.floor(diff/1000);
+        const days = Math.floor(sec / (3600*24));
+        const hours = Math.floor((sec % (3600*24)) / 3600);
+        const minutes = Math.floor((sec % 3600) / 60);
+        const seconds = sec % 60;
+
+        const dayPart = days > 0 ? `${days}d ` : ''; // hide 0d
+        countdownEl.textContent = `${dayPart}${hours}h ${pad(minutes)}m ${pad(seconds)}s`;
+      }
+
+      // animate & reveal button
+      function showOpenButton(){
+        openBtn.classList.add('visible');
+        openBtn.removeAttribute('aria-hidden');
+        openBtn.removeAttribute('aria-disabled');
+        openBtn.setAttribute('aria-expanded','false');
+        openBtn.style.pointerEvents = 'auto';
+        // allow keyboard focus
+        openBtn.tabIndex = 0;
+      }
+
+      // event: open popup
+      openBtn.addEventListener('click', function(){
+        overlay.classList.add('show');
+        overlay.setAttribute('aria-hidden','false');
+        // shift focus to close button for accessibility
+        closeBtn.focus();
+      });
+
+      // close popup
+      function closePopup(){
+        overlay.classList.remove('show');
+        overlay.setAttribute('aria-hidden','true');
+        openBtn.focus();
+      }
+
+      closeBtn.addEventListener('click', closePopup);
+
+      // click outside to close
+      overlay.addEventListener('click', function(e){
+        if (e.target === overlay) closePopup();
+      });
+
+      // ESC to close
+      document.addEventListener('keydown', function(e){
+        if (e.key === 'Escape' && overlay.classList.contains('show')) {
+          closePopup();
+        }
+      });
+
+      // initial run
+      update();
+      const ticker = setInterval(update, 1000);
+
+      // If page opened after target, ensure button visible immediately
+      if (new Date() >= target) showOpenButton();
+    })();
   </script>
 </body>
 </html>
